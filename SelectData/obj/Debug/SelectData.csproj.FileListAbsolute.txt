@@ -1,0 +1,9 @@
+D:\wuduan\Engineering\MRI_Spectrometer\EDA\CS\AutoShimmming\SelectData\bin\Debug\SelectData.exe.config
+D:\wuduan\Engineering\MRI_Spectrometer\EDA\CS\AutoShimmming\SelectData\bin\Debug\SelectData.exe
+D:\wuduan\Engineering\MRI_Spectrometer\EDA\CS\AutoShimmming\SelectData\bin\Debug\SelectData.pdb
+D:\wuduan\Engineering\MRI_Spectrometer\EDA\CS\AutoShimmming\SelectData\obj\Debug\SelectData.csprojResolveAssemblyReference.cache
+D:\wuduan\Engineering\MRI_Spectrometer\EDA\CS\AutoShimmming\SelectData\obj\Debug\SelectData.SelectDataForm.resources
+D:\wuduan\Engineering\MRI_Spectrometer\EDA\CS\AutoShimmming\SelectData\obj\Debug\SelectData.Properties.Resources.resources
+D:\wuduan\Engineering\MRI_Spectrometer\EDA\CS\AutoShimmming\SelectData\obj\Debug\SelectData.csproj.GenerateResource.Cache
+D:\wuduan\Engineering\MRI_Spectrometer\EDA\CS\AutoShimmming\SelectData\obj\Debug\SelectData.exe
+D:\wuduan\Engineering\MRI_Spectrometer\EDA\CS\AutoShimmming\SelectData\obj\Debug\SelectData.pdb
