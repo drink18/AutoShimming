@@ -40,24 +40,13 @@ namespace AutoShimmming
     {
         string _fcfgDir;
         public static string initFileName = @"C:\mri_20160903\dll\hw_cfg\init.ini";
-        //private event MRIDataReadyEventHandler mriDataReadyEventHandler;
-        public static event MRIDataReadyEventHandler OnMRIDataReady;
-        //{
-        //    add
-        //    {
-        //        this.mriDataReadyEventHandler += value;
-        //    }
-        //    remove
-        //    {
-        //        this.mriDataReadyEventHandler -= value;
-        //    }
-        //}
-
-        
 
         #region 字段与属性
             BackgroundWorker bgwConnect;
             BackgroundWorker bgwAcquiringData;
+            #region fetchRawData
+            getFiles fetchRawData;
+            #endregion
             //#region DataReady
             //bool dataReady;
 
@@ -159,9 +148,9 @@ namespace AutoShimmming
             }
             #endregion
             #region DataFileList
-            static string[] _dataFileList;
+            string[] _dataFileList;
 
-            public static string[] DataFileList
+            public string[] DataFileList
             {
                 get { return _dataFileList; }
                 set { _dataFileList = value; }
@@ -229,9 +218,9 @@ namespace AutoShimmming
 
             #endregion
             #region SampleBandWidth in Hz
-            static double _sampleBandWidth;
+            double _sampleBandWidth;
 
-            public static double SampleBandWidth
+            public double SampleBandWidth
             {
                 get { return _sampleBandWidth; }
                 set { _sampleBandWidth = value; }
@@ -391,9 +380,15 @@ namespace AutoShimmming
                 //set { _dataFolder = value; }
             }
             #endregion
+            #region DataReady
+            bool dataReady;
+            public bool DataReady
+            {
+                get { return dataReady; }
+                set { dataReady = value; }
+            }
+            #endregion
         #endregion
-
-
 
         public event connectStatusChanged OnConnectStatusChanged;
 
@@ -432,12 +427,14 @@ namespace AutoShimmming
             UpdateShimmingParameters();
             initBgw();
             SetZoomPanMode();
+            fetchRawData = _fetchRawData;
             NMR.RegisterImageP(fetchRawData);
+            //NMR.RegisterImageP(_fetchRawData);
             NMR.SetVerboseLevel(1);
             //btnConnect.Enabled = false;
             Int32 tmp;
             tmp = NMR.SetOutputFile(_dataFolder);
-            NMR.SetOutputPrefix("test");
+            //NMR.SetOutputPrefix("test");
             //connectScope();
             //Connect = ConnectStatus.Connecting;
             //Connect = ConnectStatus.NotConnected;
@@ -474,26 +471,29 @@ namespace AutoShimmming
 
         private void bgwAcquiringData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            //ProcessData();
+
+            ProcessData(DataFileList);
+            //MessageBox.Show(DataReady.ToString());
         }
 
         private void bgwAcquiringData_DoWork(object sender, DoWorkEventArgs e)
         {
             ////MessageBox.Show("acquiring data...");
-            //int tmp;
-            //tmp=NMR.Run();
-            //if (tmp == 1)
-            //{
-            //    MessageBox.Show("Acquiring Data Failed!");
-            //}
-            //while (NMR.ScanCompleted() != 2)
-            //{
-            //    Thread.Sleep(100);
-            //}
-            ////if (tmp == 1)
-            ////{
-            ////    MessageBox.Show("Acquiring Data Failed!");
-            ////}
+            int tmp;
+            tmp = NMR.Run();
+            if (tmp == 1)
+            {
+                MessageBox.Show("Acquiring Data Failed!");
+                return;
+            }
+            while (NMR.ScanCompleted() != 2)
+            {
+                Thread.Sleep(100);
+            }
+            while (DataReady == false)
+            {
+                Thread.Sleep(100);
+            }
         }
 
         private void bgwConnect_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -890,23 +890,6 @@ namespace AutoShimmming
 
         }
 
-        //public void DataChanged(object sender, DataChangeEventArgs args)
-        //{
-        //    int slice = args.Slice;
-        //    int scan = args.Scan;
-        //    int echo = args.Echo;
-        //    int average = args.Average;
-        //    LineShape lineShape;
-        //    updateDisplay(mriData.getAViewReal(),
-        //        mriData.getAViewImag(),
-        //        mriData.getAViewSpectrumAbs(),
-        //        mriData.SampleFreq);
-        //    lineShape = getLineShape(mriData.getAViewSpectrumAbs(), 0.5);
-        //    tbxMaxAmplitude.Text = lineShape.max.ToString("e2");
-        //    double FreqMax = (lineShape.maxPos - mriData.NoSamples / 2) * mriData.SampleFreq / mriData.NoSamples;
-        //    tbxMaxAt.Text = FreqMax.ToString("f2");
-        //}
-
         private void btnOpenData_Click(object sender, EventArgs e)
         {
             double[] fittingResult=new double[3];
@@ -919,21 +902,6 @@ namespace AutoShimmming
                 string[] fnames = new string[1];
                 fnames[0] = ofd.FileName;
                 ProcessData(fnames);
-                //MRIData mriData = new MRIData(fnames);
-                //tbxF0.Text = mriData.SysFreq.ToString();
-                //tbxSampleFreq.Text = mriData.SampleFreq.ToString();
-                //updateDisplay(mriData.getAViewReal(),
-                //    mriData.getAViewImag(),
-                //    mriData.getAViewSpectrumAbs(),
-                //    mriData.SampleFreq);
-                //lineShape = getLineShape(mriData.getAViewSpectrumAbs(), 0.5);
-                //tbxMaxAmplitude.Text = lineShape.max.ToString("e2");
-                //double FreqMax = (lineShape.maxPos - mriData.NoSamples / 2) * mriData.SampleFreq / mriData.NoSamples;
-                //tbxMaxAt.Text = FreqMax.ToString("f2");
-                //tbxLineWidth.Text = (lineShape.lineWidth * mriData.SampleFreq / mriData.NoSamples).ToString("f2");
-                //tbxLineWidthAt.Text = lineShape.lineWidthAt.ToString("e2");
-                //fittingResult = DoGaussianFitting(mriData.getAViewSpectrumAbs(),1.05);
-                //tbxFittingLineWidth.Text = Math.Sqrt(fittingResult[2]).ToString("f2");
             }
         }
 
@@ -1057,18 +1025,8 @@ namespace AutoShimmming
             NMR.SetChannelValue(shimChannel.CHANNEL_X, shimX);
             NMR.SetChannelValue(shimChannel.CHANNEL_Y, shimY);
             NMR.SetChannelValue(shimChannel.CHANNEL_Z, shimZ);
-
-            //bgwAcquiringData.RunWorkerAsync();
-            //DataReady = false;
-            NMR.Run();
-            while (NMR.ScanCompleted() != 2)
-            {
-                Thread.Sleep(100);
-            }
-            //mriData = new MRIData(DataFileList);
-            //ProcessData(DataFileList);
-           
-            
+            DataReady = false;
+            bgwAcquiringData.RunWorkerAsync();
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
@@ -1161,11 +1119,6 @@ namespace AutoShimmming
             nudGradZ.Increment = decimal.Parse(((TextBox)sender).Text);
         }
 
-
-        //public static Func<string, Int32> ConnectToSprectrum = NMR.Init;
-
-        
-
         public  void updateDisplay(double[] dataReal, double[] dataImag, double[] spectrumAbs, double freqSampling)
         {
             dataFormat df;
@@ -1250,6 +1203,7 @@ namespace AutoShimmming
             sdPane.XAxis.Scale.Max = f[spectrumAbs.Length - 1];
             sdPane.YAxis.Scale.MaxAuto = true;
             sdPane.YAxis.Scale.MinAuto = true;
+
             sdPane.AxisChange();
             tdPane.AxisChange();
 
@@ -1389,9 +1343,9 @@ namespace AutoShimmming
         /// </summary>
         /// 
         #region fetchRawData
-        getFiles fetchRawData = delegate(string rawDataFileName)
+        
+        private void  _fetchRawData(string rawDataFileName)
         {
-            //MessageBox.Show(rawDataFileName);
             ArrayList lst;
             string[] fileNameList;
             string[] fileNameList2;
@@ -1403,48 +1357,24 @@ namespace AutoShimmming
             {
                 fileNameList2[i] = lst[2 * i] + ":" + lst[2 * i + 1];
             }
-            
             DataFileList = fileNameList2;
-            mainForm frm = new mainForm();
-            frm.ProcessData(DataFileList);
-           
-        };
-
-        private static void fetchData(string[] s)
-        {
-            //mainForm mform=new mainForm();
-            //MRIDataReadyEventArgs e=new MRIDataReadyEventArgs(s);
-            ////e.FileNameList = s;
-            //if(OnMRIDataReady!=null)
-            //{
-            //    mainForm_OnMRIDataReady(mform, e);
-            //}
+            DataReady = true;
         }
-
         
         #endregion
-        public void frm_MRIDataReady(object sender, MRIDataReadyEventArgs e)
-        {
-            //mainForm frm = new mainForm();
-            //frm.ProcessData(e.FileNameList);
-        }
 
         public  void ProcessData(string[] _dataFileList)
         {
             LineShape lineShape;
-            //mainForm frm = new mainForm();
             mriData = new MRIData(_dataFileList);
-            //MessageBox.Show(frm.mriData.GetHashCode().ToString());
             double[] dataReal = new double[mriData.DataNumber];
             double[] dataImag = new double[mriData.DataNumber];
             double[] dataSpectrumAbs = new double[mriData.DataNumber];
             dataReal = mriData.getAViewReal();
             dataImag = mriData.getAViewImag();
             dataSpectrumAbs = mriData.getAViewSpectrumAbs();
-            //mainForm frm = new mainForm();
             updateDisplay(dataReal, dataImag, dataSpectrumAbs, mriData.SampleFreq);
             lineShape = getLineShape(dataSpectrumAbs, 0.5);
-
             tbxMaxAmplitude.Text = lineShape.max.ToString("e2");
             double FreqMax = (lineShape.maxPos - mriData.NoSamples / 2) * mriData.SampleFreq / mriData.NoSamples;
             tbxMaxAt.Text = FreqMax.ToString("f2");
@@ -1489,7 +1419,6 @@ namespace AutoShimmming
                 tbxNoScans.Text = _noScans.ToString();
             }
             tbxDataFolder.Text = _dataFolder;
-            //statusStrip.Items[0].Text = "Not connect.";
         }
 
         /// <summary>
